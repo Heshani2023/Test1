@@ -1,6 +1,12 @@
 /**
- * Defining NavBar for all the admin pages using Chakra UI Framwork for react
+ * Defining NavBar for all the student pages using Chakra UI Framwork for react
  */
+import { useSession, signOut } from 'next-auth/react';
+
+import Router from "next/router";
+import { useEffect } from "react";
+
+
 import { ReactNode } from 'react';
 import {
   Box,
@@ -18,12 +24,11 @@ import {
   Stack,
 } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon} from '@chakra-ui/icons';
-import { useSession, signOut } from 'next-auth/react';
 
 /**
  * Defining the Menu links in an array for easy customization
  */
-const Links = ['Home','Add a Quiz'];
+const Links = ['Home','Take a Quiz'];
 
 /**
  * To create links for the navigation bar items
@@ -47,9 +52,9 @@ const NavLink = ({ children }: { children: ReactNode }) => (
 
 /**
  * For creating the navigation bar styles and mapping of the Link array data as menu items
- * @returns Navigation bar for all the pages for Admin mapped with the values in the Links array
+ * @returns Navigation bar for all the pages for students mapped with the values in the Links array
  */
-export default function Navbar() {
+export default function ResultHeader() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { data: session, status } = useSession()
 
@@ -66,50 +71,8 @@ export default function Navbar() {
           />
           <HStack spacing={18} alignItems={'center'}>
             <Box><Image src="../img/logo.png" alt="Quizzeria" /></Box>
-
-            <HStack
-              as={'nav'}
-              spacing={4}
-              display={{ base: 'none', md: 'flex' }}>
-              {Links.map((link) => (
-                <NavLink key={link}>{link}</NavLink>
-              ))}
-            </HStack>
           </HStack>
-          <Flex alignItems={'center'}>
-            <Button
-                as={'a'}
-                fontSize={'sm'}
-                fontWeight={400}
-                variant={'link'}
-                href={'#'}
-                margin={5}>
-                {session?.user?.name}
-            </Button>
-            <Button
-              variant={'solid'}
-              colorScheme={'orange'}
-              size={'sm'}
-              mr={4}
-              >
-              Log Out
-            </Button>
-            <Menu>
-              <MenuButton
-                as={Button}
-                rounded={'full'}
-                variant={'link'}
-                cursor={'pointer'}
-                minW={0}>
-                <Avatar
-                  size={'sm'}
-                  src={
-                    'https://images.unsplash.com/photo-1493666438817-866a91353ca9?ixlib=rb-0.3.5&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&s=b616b2c5b373a80ffc9636ba24f7a4a9'
-                  }
-                />
-              </MenuButton>
-            </Menu>
-          </Flex>
+        
         </Flex>
 
         {isOpen ? (
