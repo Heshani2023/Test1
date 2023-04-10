@@ -3,37 +3,48 @@ import { ChakraProvider } from "@chakra-ui/react";
 import NavBar from "../../../components/studentNavbar";
 import Footer from "../../../components/Footer";
 import Card from "../../../components/ExamTitleCard";
-import QuestionList from "../../../components/shortAnswerQuestions";
+import ShortAnswerQuestionList from "../../../components/shortAnswerQuestions";
 import { Box } from "@chakra-ui/react";
-import clientPromise from "../../../src/lib/mongodb";
+import MongoQuizData from "../../../src/data/dbconnection";
+import Question from "../../../src/business/models/question";
 
+interface TakeAQuizProps {
+  questions: Array<Question>;
+}
+/**
+ * To fetch questionlist from the data layer
+ * @returns JSON string of questions for Math subject as received from the database
+ */
 export async function getServerSideProps() {
   try {
-    const client = await clientPromise;
-    const db = client.db("test");
 
-    const quizzes = await db
-      .collection("quizes")
-      .find({})
-      .toArray();
-
+    var qd = new MongoQuizData();
+    let questions = await qd.findQuestionListOfAQuiz("Math");
     return {
-      props: { quizzes: JSON.parse(JSON.stringify(quizzes)) },
+      props: {
+        questions: JSON.parse(JSON.stringify(questions))
+      },
     };
-  } catch (e) {
+  } 
+  catch (e) {
     console.error(e);
+    console.log("Error Occurred");
+    return {
+      props: {},
+    };
   }
 }
 /**
  * Function to return Take a Quiz UI for students
+ * @param questions - json string of questions data for Math subject as received from the database.
  * @returns Attempt a Quiz UI for students
  */
-export default function takeAQuiz() {
+export default function takeAQuiz({ questions }: TakeAQuizProps) {
   return (
     <>
       <Head>
-        <title>Quiz Bank</title>
-        <meta name="description" content="Quiz App Home for students" />
+        <title>Take A Quiz</title>
+        <meta name="description" content="Take a quiz screen for students" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -44,7 +55,7 @@ export default function takeAQuiz() {
             <Card />
           </Box>
           <Box flex="1" mx="auto" justifyContent="center" alignContent={"center"}>
-            <QuestionList/>
+            <ShortAnswerQuestionList questions={questions}/>
           </Box>
           <Footer />
         </Box>
