@@ -39,7 +39,6 @@ describe("MongoQuizData", () => {
     await db.collection("users").insertOne({
       name: "John",
       lastname: "Doe",
-      username: "johndoe",
       email: "john@example.com",
       password: "password",
       role: "student",
@@ -48,14 +47,31 @@ describe("MongoQuizData", () => {
         { subject: "Science", marks: 90 },
       ],
     });
-    
-    await db.collection("questions").insertOne({
-      question: "What is the capital of Canada?",
-      answer: "Ottawa",
-      subject: "Geography",
-      type: "SingleAnswer",
-    });
 
+    await db.collection("users").insertOne({
+      name: "Jane",
+      lastname: "Doe",
+      email: "jane@example.com",
+      password: "password",
+      role: "student",
+      quizzes: [
+        { subject: "Math", marks: 80 },
+      ],
+    });
+    await db.collection("questions").insertMany([
+      {
+        question: "What is the capital of Canada?",
+        answer: "Ottawa",
+        subject: "Geography",
+        type: "SingleAnswer",
+      },
+      {
+        question: "What is 10/2",
+        answer: "5",
+        subject: "IQ",
+        type: "SingleAnswer",
+      },
+    ]);
   });
 
   after(async () => {
@@ -85,6 +101,17 @@ describe("MongoQuizData", () => {
       expect(quizzes[0].subject).to.deep.equal("Math");
       expect(quizzes[1].name).to.deep.equal("Quiz2");
       expect(quizzes[1].subject).to.deep.equal("Science");
+    });
+  });
+
+  describe("findAllQuizzesWithQuizTakersCount", () => {
+    it("should return the count of the subject", async () => {
+      const quizzes = await quizData.findAllQuizzesWithQuizTakersCount();
+      expect(quizzes).to.have.lengthOf(2);
+      expect(quizzes[0].subject).to.deep.equal("Math");
+      expect(quizzes[0].quizTakers).to.deep.equal(2);
+      expect(quizzes[1].subject).to.deep.equal("Science");
+      expect(quizzes[1].quizTakers).to.deep.equal(1);
     });
   });
 
@@ -179,7 +206,6 @@ describe("MongoQuizData", () => {
 
       expect(user.name).to.deep.equal("John");
       expect(user.lastname).to.deep.equal("Doe");
-      expect(user.username).to.deep.equal("johndoe");
       expect(user.role).to.deep.equal("student");
       
     });
@@ -188,8 +214,20 @@ describe("MongoQuizData", () => {
       const user = await quizData.findUser("wrongEmail@example.com");
       expect(user.name).to.deep.equal("NotFound");
       expect(user.lastname).to.deep.equal("NotFound");
-      expect(user.username).to.deep.equal("NotFound");
       expect(user.role).to.deep.equal("NotFound");
+      
+    });
+
+  });
+
+  describe("addUser", () => {
+    it("should enter the new user and return the user", async () => {
+      const user = await quizData.addUser("Test" , "test@test.com" , "1234" , "student");
+
+      expect(user.name).to.deep.equal("Test");
+      expect(user.email).to.deep.equal("test@test.com");
+      expect(user.password).to.deep.equal("1234");
+      expect(user.role).to.deep.equal("student");
       
     });
 
@@ -208,4 +246,53 @@ describe("MongoQuizData", () => {
 
   });
 
+  describe("deleteQuiz", () => {
+    it("should delete a quiz object when given a valid subject", async () => {
+      const quiz = await quizData.deleteQuiz("Geography");
+      expect(quiz).to.deep.equal(true);
+    });
+
+  });
+
+  describe("unlinkQuestionFromQuiz", () => {
+    it("should set questions subject to null", async () => {
+      const question = await quizData.unlinkQuestionFromQuiz("Geography");
+      expect(question[0].subject).to.deep.equal('null');
+    });
+
+  });
+  
+  describe("findQuestionListOfAQuiz", () => {
+    it("should return an array of questions for a given subject", async () => {
+      const questions = await quizData.findQuestionListOfAQuiz("IQ");
+      expect(questions).to.have.lengthOf(1);
+      expect(questions[0].subject).to.equal("IQ");
+    });
+
+    it("should return null if no questions found for a given subject", async () => {
+      const questions = await quizData.findQuestionListOfAQuiz("NotaSubject");
+      expect(questions).to.have.lengthOf(0);
+    });
+  });
+  
+  describe('addMarks', () => {
+    it('Sumrish - should successfully add marks to DB corresponding to the specific user', async () => {
+      const studentId = "john@example.com";
+      const subject = "Biology";
+      const marks = 90;
+      const marksAdded = await quizData.addMarks(studentId, subject,marks);
+      expect(marksAdded.acknowledged).to.deep.equal(true);
+   });
+  });
+
+  describe('fetchMarks', () => {
+    it('Sumrish - should return the added quiz marks corresponding to the specific user', async () => {
+      const user = await quizData.findUser("john@example.com");
+      expect(user.name).to.deep.equal("John");
+      expect(user.lastname).to.deep.equal("Doe");
+      expect(user.role).to.deep.equal("student");
+      expect(user.quizzes[2].subject).to.deep.equal("Biology");
+      expect(user.quizzes[2].marks).to.deep.equal(90);
+   });
+  });
 });

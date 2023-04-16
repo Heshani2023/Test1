@@ -6,7 +6,7 @@ export default interface Quiz {
   name: string;
   type: string;
   subject: string;
-  marks: number;
+  maxMarks: number;
   time: number;
 }
 
@@ -15,4 +15,9 @@ export default interface Quiz {
  */
 export interface UserQuiz extends Quiz {
   marks: number;
+}
+
+export interface AdminQuizList extends Quiz {
+  quizTakers: number;
+  attempts: number;
 }
